@@ -71,7 +71,9 @@ class Coupon(models.Model):
         _("Code"), max_length=30, unique=True, blank=True,
         help_text=_("Leaving this field empty will generate a random code."))
     type = models.CharField(_("Type"), max_length=20, choices=COUPON_TYPES)
-    user_limit = models.PositiveIntegerField(_("User limit"), default=1)
+    user_limit = models.PositiveIntegerField(_("User limit"), default=1,
+                                             help_text=_("Amount of users who can redeem this coupon. Set to 0 for "
+                                                         "unlimited"))
     created_at = models.DateTimeField(_("Created at"), auto_now_add=True)
     valid_until = models.DateTimeField(
         _("Valid until"), blank=True, null=True,
