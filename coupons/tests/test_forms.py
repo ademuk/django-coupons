@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.test import TestCase
 
 from coupons.forms import CouponGenerationForm, CouponForm
-from coupons.models import Coupon, CouponUser
+from coupons.models import Coupon
 
 
 class CouponGenerationFormTestCase(TestCase):
@@ -19,7 +19,7 @@ class CouponFormTestCase(TestCase):
     def setUp(self):
         self.user = User(username="user1")
         self.user.save()
-        self.coupon = Coupon.objects.create_coupon('monetary', 100, self.user)
+        self.coupon = Coupon.objects.create_coupon('monetary', 100, [self.user])
 
     def test_wrong_code(self):
         form_data = {'code': 'foo'}

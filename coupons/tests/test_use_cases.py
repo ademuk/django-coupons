@@ -51,7 +51,7 @@ class DefaultCouponTestCase(TestCase):
 class SingleUserBoundCouponTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.create(username="user1")
-        self.coupon = Coupon.objects.create_coupon('monetary', 100, self.user)
+        self.coupon = Coupon.objects.create_coupon('monetary', 100, [self.user])
 
     def test_user_limited_coupon(self):
         self.assertEquals(self.coupon.users.count(), 1)

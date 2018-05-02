@@ -45,13 +45,13 @@ class CouponManager(models.Manager):
             users = [users]
         for user in users:
             if user:
-                CouponUser(user=user, coupon=coupon).save()
+                coupon.users.create(user=user)
         return coupon
 
     def create_coupons(self, quantity, type, value, valid_until=None, prefix="", campaign=None):
         coupons = []
         for i in range(quantity):
-            coupons.append(self.create_coupon(type, value, None, valid_until, prefix, campaign))
+            coupons.append(self.create_coupon(type, value, [], valid_until, prefix, campaign))
         return coupons
 
     def used(self):
@@ -130,11 +130,13 @@ class Coupon(models.Model):
         try:
             coupon_user = self.users.get(user=user)
         except CouponUser.DoesNotExist:
-            try:  # silently fix unbouned or nulled coupon users
+            try:
+                # TODO what is this?
+                # silently fix unbouned or nulled coupon users
                 coupon_user = self.users.get(user__isnull=True)
                 coupon_user.user = user
             except CouponUser.DoesNotExist:
-                coupon_user = CouponUser(coupon=self, user=user)
+                coupon_user = self.users.create(user=user)
         coupon_user.redeemed_at = timezone.now()
         coupon_user.save()
         redeem_done.send(sender=self.__class__, coupon=self)
