@@ -107,6 +107,10 @@ class Coupon(models.Model):
         ).count() >= self.user_limit and self.user_limit is not 0
 
     @property
+    def is_user_bound(self):
+        return self.users.filter(redeemed_at__isnull=True).count() > 0
+
+    @property
     def redeemed_at(self):
         try:
             return self.users.filter(redeemed_at__isnull=False).order_by('redeemed_at').last().redeemed_at

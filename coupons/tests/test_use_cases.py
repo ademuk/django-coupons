@@ -48,7 +48,7 @@ class DefaultCouponTestCase(TestCase):
         self.assertTrue(form.is_valid())
 
 
-class SingleUserCouponTestCase(TestCase):
+class SingleUserBoundCouponTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.create(username="user1")
         self.coupon = Coupon.objects.create_coupon('monetary', 100, self.user)
@@ -73,6 +73,15 @@ class SingleUserCouponTestCase(TestCase):
         self.assertFalse(form.is_valid())
         self.assertEquals(
             form.errors,
+            {'code': ['This user bound code requires a user instance to check against.']}
+        )
+
+    def test_form_with_invalid_user(self):
+        """ This should fail since the coupon is bound to an user different to the one provided. """
+        form = CouponForm(data={'code': self.coupon.code}, user=User.objects.create(username="otheruser"))
+        self.assertFalse(form.is_valid())
+        self.assertEquals(
+            form.errors,
             {'code': ['This code is not valid for your account.']}
         )
 
@@ -80,6 +89,55 @@ class SingleUserCouponTestCase(TestCase):
         self.test_redeem_with_user()
         # try to redeem again with form
         form = CouponForm(data={'code': self.coupon.code}, user=self.user)
+        self.assertFalse(form.is_valid())
+        self.assertEquals(
+            form.errors,
+            {'code': ['This code has already been used.']}
+        )
+
+
+class MultiUserBoundCouponTestCase(TestCase):
+    def setUp(self):
+        self.user1 = User.objects.create(username="user1")
+        self.user2 = User.objects.create(username="user2")
+        self.coupon = Coupon.objects.create_coupon('monetary', 100, [self.user1, self.user2])
+
+    def test_user_limited_coupon(self):
+        self.assertEquals(self.coupon.users.count(), 2)
+        self.assertIsNone(self.coupon.users.first().redeemed_at)
+        self.assertFalse(self.coupon.is_redeemed)
+
+    def test_redeem_with_users(self):
+        self.coupon.redeem(self.user1)
+        self.coupon.redeem(self.user2)
+        # coupon should be redeemed properly now
+        self.assertTrue(self.coupon.is_redeemed)
+
+        self.assertIsInstance(self.coupon.users.first().redeemed_at, datetime)
+        self.assertIsInstance(self.coupon.users.last().redeemed_at, datetime)
+
+    def test_form_without_user(self):
+        """ This should fail since the coupon is bound to an user, but we do not provide any user. """
+        form = CouponForm(data={'code': self.coupon.code})
+        self.assertFalse(form.is_valid())
+        self.assertEquals(
+            form.errors,
+            {'code': ['This user bound code requires a user instance to check against.']}
+        )
+
+    def test_form_with_invalid_user(self):
+        """ This should fail since the coupon is bound to an user different to the ones provided. """
+        form = CouponForm(data={'code': self.coupon.code}, user=User.objects.create(username="otheruser"))
+        self.assertFalse(form.is_valid())
+        self.assertEquals(
+            form.errors,
+            {'code': ['This code is not valid for your account.']}
+        )
+
+    def test_redeem_with_user_twice(self):
+        self.test_redeem_with_users()
+        # try to redeem again with form
+        form = CouponForm(data={'code': self.coupon.code}, user=self.user1)
         self.assertFalse(form.is_valid())
         self.assertEquals(
             form.errors,
