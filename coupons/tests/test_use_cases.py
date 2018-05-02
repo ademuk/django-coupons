@@ -94,27 +94,20 @@ class UnlimitedCouponTestCase(TestCase):
 
     def test_redeem_with_user(self):
         self.coupon.redeem(self.user)
+
         # coupon is not redeemed since it can be used unlimited times
         self.assertFalse(self.coupon.is_redeemed)
-        # coupon should be redeemed properly now
-        self.assertEquals(self.coupon.users.count(), 1)
-        self.assertIsInstance(self.coupon.users.first().redeemed_at, datetime)
-        self.assertEquals(self.coupon.users.first().user, self.user)
 
     def test_redeem_with_multiple_users(self):
         for i in range(100):
-            user = User.objects.create(username="test%s" % (i))
-            form = CouponForm(data={'code': self.coupon.code}, user=user)
+            user = User.objects.create(username="test%s" % i)
+            self.coupon.redeem(user)
+            form = CouponForm(data={'code': self.coupon.code})
             self.assertTrue(form.is_valid())
 
     def test_form_without_user(self):
-        """ This should fail since we cannot track single use of a coupon without an user. """
         form = CouponForm(data={'code': self.coupon.code})
-        self.assertFalse(form.is_valid())
-        self.assertEquals(
-            form.errors,
-            {'code': ['The server must provide an user to this form to allow you to use this code. Maybe you need to sign in?']}
-        )
+        self.assertTrue(form.is_valid())
 
     def test_redeem_with_user_twice(self):
         self.test_redeem_with_user()
