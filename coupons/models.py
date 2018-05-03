@@ -66,7 +66,7 @@ class CouponManager(models.Manager):
 
 @python_2_unicode_compatible
 class Coupon(models.Model):
-    value = models.IntegerField(_("Value"), help_text=_("Arbitrary coupon value"))
+    value = models.DecimalField(_("Value"), max_digits=64, decimal_places=2, help_text=_("Arbitrary coupon value"))
     code = models.CharField(
         _("Code"), max_length=30, unique=True, blank=True,
         help_text=_("Leaving this field empty will generate a random code."))
