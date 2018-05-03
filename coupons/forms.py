@@ -35,6 +35,10 @@ class CouponForm(forms.Form):
 
     def clean_code(self):
         code = self.cleaned_data['code']
+
+        if not code:
+            return code
+        
         try:
             coupon = Coupon.objects.get(code=code)
         except Coupon.DoesNotExist:
