@@ -20,7 +20,7 @@ class CouponGenerationForm(forms.Form):
 
 
 class CouponForm(forms.Form):
-    code = forms.CharField(label=_("Coupon code"))
+    code = forms.CharField(label=_("Coupon code"), required=False)
 
     def __init__(self, *args, **kwargs):
         self.user = None
